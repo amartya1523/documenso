@@ -166,6 +166,27 @@ export const DATE_FORMATS = [
   value: (typeof VALID_DATE_FORMAT_VALUES)[number];
 }[];
 
+/**
+ * The stored ISO 8601 value uses the `XXX` offset token, which luxon does not
+ * support and prints literally. It is kept as the stored value for backwards
+ * compatibility and mapped to the equivalent luxon `ZZ` token when formatting.
+ */
+const LEGACY_ISO_8601_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+const LUXON_ISO_8601_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZZ";
+
+/**
+ * Converts a stored document date format into a format string luxon can use.
+ */
+export const toLuxonDateFormat = (dateFormat: string | null = DEFAULT_DOCUMENT_DATE_FORMAT): string => {
+  const coalescedDateFormat = dateFormat ?? DEFAULT_DOCUMENT_DATE_FORMAT;
+
+  if (coalescedDateFormat === LEGACY_ISO_8601_DATE_FORMAT) {
+    return LUXON_ISO_8601_DATE_FORMAT;
+  }
+
+  return coalescedDateFormat;
+};
+
 export const convertToLocalSystemFormat = (
   customText: string,
   dateFormat: string | null = DEFAULT_DOCUMENT_DATE_FORMAT,
@@ -174,15 +195,24 @@ export const convertToLocalSystemFormat = (
   const coalescedDateFormat = dateFormat ?? DEFAULT_DOCUMENT_DATE_FORMAT;
   const coalescedTimeZone = timeZone ?? DEFAULT_DOCUMENT_TIME_ZONE;
 
-  const parsedDate = DateTime.fromFormat(customText, coalescedDateFormat, {
+  const luxonDateFormat = toLuxonDateFormat(coalescedDateFormat);
+
+  let parsedDate = DateTime.fromFormat(customText, luxonDateFormat, {
     zone: coalescedTimeZone,
   });
+
+  // Dates signed before the ISO 8601 format was fixed were stored with a literal "XXX" suffix.
+  if (!parsedDate.isValid && luxonDateFormat !== coalescedDateFormat) {
+    parsedDate = DateTime.fromFormat(customText, coalescedDateFormat, {
+      zone: coalescedTimeZone,
+    });
+  }
 
   if (!parsedDate.isValid) {
     return 'Invalid date';
   }
 
-  const formattedDate = parsedDate.toLocal().toFormat(coalescedDateFormat);
+  const formattedDate = parsedDate.toLocal().toFormat(luxonDateFormat);
 
   return formattedDate;
 };

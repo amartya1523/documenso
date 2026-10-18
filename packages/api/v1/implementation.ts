@@ -1142,13 +1142,21 @@ export const ApiContractV1Implementation = tsr.router(ApiContractV1, {
         userId: user.id,
         teamId: team.id,
         recipients: [
-          ...recipients.map((recipient) => ({
-            email: recipient.email,
-            name: recipient.name,
-            role: recipient.role,
-            signingOrder: recipient.signingOrder,
-            actionAuth: ZRecipientAuthOptionsSchema.parse(recipient.authOptions)?.actionAuth ?? [],
-          })),
+          ...recipients.map((recipient) => {
+            const { accessAuth, actionAuth } = ZRecipientAuthOptionsSchema.parse(recipient.authOptions);
+
+            // Pass the id so existing recipients are matched and kept instead of being
+            // removed and recreated with new tokens.
+            return {
+              id: recipient.id,
+              email: recipient.email,
+              name: recipient.name,
+              role: recipient.role,
+              signingOrder: recipient.signingOrder,
+              accessAuth,
+              actionAuth,
+            };
+          }),
           {
             email,
             name,

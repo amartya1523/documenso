@@ -66,8 +66,8 @@ export default function Layout() {
         }}
         primaryButton={
           <Button asChild>
-            <Link to="/settings/teams">
-              <Trans>View teams</Trans>
+            <Link to="/">
+              <Trans>Go home</Trans>
             </Link>
           </Button>
         }

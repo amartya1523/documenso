@@ -23,7 +23,7 @@ export const validateNumberField = (
     }
   }
 
-  const numberValue = parseFloat(value);
+  const numberValue = parseNumberFieldValue(value, numberFormat);
 
   if (isSigningPage && required && !value) {
     errors.push('Value is required');
@@ -62,4 +62,27 @@ export const validateNumberField = (
   }
 
   return errors;
+};
+
+/**
+ * Parses a number field value using its configured number format, so values with
+ * thousands separators (e.g. "1,500" or "1.234,56") are compared as the full number
+ * instead of stopping at the first separator like `parseFloat` does.
+ */
+const parseNumberFieldValue = (value: string, numberFormat?: string | null): number => {
+  const trimmedValue = value.trim();
+
+  if (!trimmedValue) {
+    return Number.NaN;
+  }
+
+  if (numberFormat === '123.456.789,00') {
+    return Number(trimmedValue.replace(/\./g, '').replace(',', '.'));
+  }
+
+  if (numberFormat === '123,456,789.00' || numberFormat === '123456,789.00') {
+    return Number(trimmedValue.replace(/,/g, ''));
+  }
+
+  return parseFloat(trimmedValue);
 };

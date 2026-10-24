@@ -68,7 +68,11 @@ export const TeamDeleteDialog = ({ trigger, teamId, teamName, redirectTo }: Team
     try {
       const transferTeamId = data.transferTeamId ? parseInt(data.transferTeamId, 10) : undefined;
 
-      await deleteTeam({ teamId, transferTeamId: transferTeamId || undefined });
+      // "-1" is the "Don't transfer" option, which must be sent as no transfer team.
+      await deleteTeam({
+        teamId,
+        transferTeamId: transferTeamId && transferTeamId > 0 ? transferTeamId : undefined,
+      });
 
       await refreshSession();
 

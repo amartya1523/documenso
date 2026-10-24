@@ -108,7 +108,14 @@ export const searchDocumentsWithKeyword = async ({ query, userId, limit = 20 }: 
         return true;
       }
 
-      const teamGroups = teamGroupsByTeamId.get(envelope.teamId) ?? [];
+      const teamGroups = teamGroupsByTeamId.get(envelope.teamId);
+
+      // The user isn't a member of the sending team, so this document only
+      // matched because they are a recipient. Team visibility doesn't apply.
+      if (!teamGroups) {
+        return true;
+      }
+
       const teamMemberRole = getHighestTeamRoleInGroup(teamGroups);
 
       if (!teamMemberRole) {

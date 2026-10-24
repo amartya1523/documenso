@@ -342,8 +342,11 @@ export const run = async ({ payload, io }: { payload: TSealDocumentJobDefinition
 
   let shouldSendCompletedEmail = sendEmail && !isResealing && !isRejected;
 
+  // A reseal of a document that was never sealed (e.g. picked up by the seal
+  // sweep after the original job failed) should still send the completion
+  // emails, but never for a rejected document.
   if (isResealing && !isDocumentCompleted(envelopeStatus)) {
-    shouldSendCompletedEmail = sendEmail;
+    shouldSendCompletedEmail = sendEmail && !isRejected;
   }
 
   if (shouldSendCompletedEmail) {

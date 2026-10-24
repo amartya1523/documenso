@@ -114,9 +114,11 @@ export const updateOrganisationMemberRoute = authenticatedProcedure
       });
     }
 
-    const currentMemberGroup = organisation.groups.find(
-      (group) => group.organisationRole === currentMemberToUpdateOrganisationRole,
-    );
+    // The member's highest role can come from a custom group, so use the internal
+    // organisation group they actually belong to when switching roles.
+    const currentMemberGroup = organisationMemberToUpdate.organisationGroupMembers.find(
+      ({ group }) => group.type === OrganisationGroupType.INTERNAL_ORGANISATION,
+    )?.group;
 
     const newMemberGroup = organisation.groups.find((group) => group.organisationRole === data.role);
 

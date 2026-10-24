@@ -84,6 +84,9 @@ export const createEnvelopeFields = async ({
         include: {
           documentData: true,
         },
+        orderBy: {
+          order: 'asc',
+        },
       },
     },
   });

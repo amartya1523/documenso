@@ -65,15 +65,21 @@ export const useEnvelopeRoute = authenticatedProcedure
       });
     }
 
-    const filesToUpload = files.filter(
-      (file, index) =>
-        payload.customDocumentData &&
-        payload.customDocumentData.some((mapping) => mapping.identifier === file.name || mapping.identifier === index),
-    );
+    // Keep each file's position in the original `files` array, since numeric
+    // identifiers refer to that position rather than to the filtered list.
+    const filesToUpload = files
+      .map((file, index) => ({ file, index }))
+      .filter(
+        ({ file, index }) =>
+          payload.customDocumentData &&
+          payload.customDocumentData.some(
+            (mapping) => mapping.identifier === file.name || mapping.identifier === index,
+          ),
+      );
 
     // Process uploaded files and create document data for them
     const uploadedFiles = await Promise.all(
-      filesToUpload.map(async (file) => {
+      filesToUpload.map(async ({ file, index }) => {
         // We disable flattening here since `createDocumentFromTemplate` will handle it.
         const { id: documentDataId } = await putNormalizedPdfFileServerSide(file, {
           flattenForm: false,
@@ -81,6 +87,7 @@ export const useEnvelopeRoute = authenticatedProcedure
 
         return {
           name: file.name,
+          index,
           documentDataId,
         };
       }),
@@ -91,7 +98,7 @@ export const useEnvelopeRoute = authenticatedProcedure
       // Find the uploaded file by identifier
       const documentDataId = match(mapping.identifier)
         .with(P.string, (name) => uploadedFiles.find((file) => file.name === name)?.documentDataId)
-        .with(P.number, (index) => uploadedFiles.at(index)?.documentDataId)
+        .with(P.number, (index) => uploadedFiles.find((file) => file.index === index)?.documentDataId)
         .exhaustive();
 
       if (!documentDataId) {

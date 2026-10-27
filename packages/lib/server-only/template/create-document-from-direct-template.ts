@@ -831,9 +831,18 @@ export const createDocumentFromDirectTemplate = async ({
       },
     });
 
+    const webhookData = ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(refetchedEnvelope));
+
+    await triggerWebhook({
+      event: WebhookTriggerEvents.DOCUMENT_RECIPIENT_COMPLETED,
+      data: webhookData,
+      userId: refetchedEnvelope.userId,
+      teamId: refetchedEnvelope.teamId ?? undefined,
+    });
+
     await triggerWebhook({
       event: WebhookTriggerEvents.DOCUMENT_SIGNED,
-      data: ZWebhookDocumentSchema.parse(mapEnvelopeToWebhookDocumentPayload(refetchedEnvelope)),
+      data: webhookData,
       userId: refetchedEnvelope.userId,
       teamId: refetchedEnvelope.teamId ?? undefined,
     });

@@ -216,9 +216,10 @@ export const createDocumentFromDirectTemplate = async ({
 
   const directTemplateRecipientAuthOptions = ZRecipientAuthOptionsSchema.parse(directTemplateRecipient.authOptions);
 
-  const nonDirectTemplateRecipients = directTemplateEnvelope.recipients.filter(
-    (recipient) => recipient.id !== directTemplateRecipient.id,
-  );
+  // Copies are matched back to their template recipient by token, since emails can repeat or be empty.
+  const nonDirectTemplateRecipients = directTemplateEnvelope.recipients
+    .filter((recipient) => recipient.id !== directTemplateRecipient.id)
+    .map((recipient) => ({ ...recipient, token: nanoid() }));
 
   // Number unordered recipients by template position since the copies get new ids.
   const signingOrderByTemplateRecipientId = new Map(
@@ -430,7 +431,7 @@ export const createDocumentFromDirectTemplate = async ({
                 sendStatus: recipient.role === RecipientRole.CC ? SendStatus.SENT : SendStatus.NOT_SENT,
                 signingStatus: recipient.role === RecipientRole.CC ? SigningStatus.SIGNED : SigningStatus.NOT_SIGNED,
                 signingOrder: resolveSigningOrder(recipient.id),
-                token: nanoid(),
+                token: recipient.token,
               };
             }),
           },
@@ -455,7 +456,7 @@ export const createDocumentFromDirectTemplate = async ({
     let nonDirectRecipientFieldsToCreate: Omit<Field, 'id' | 'secondaryId' | 'templateId'>[] = [];
 
     Object.values(nonDirectTemplateRecipients).forEach((templateRecipient) => {
-      const recipient = createdEnvelope.recipients.find((recipient) => recipient.email === templateRecipient.email);
+      const recipient = createdEnvelope.recipients.find((recipient) => recipient.token === templateRecipient.token);
 
       if (!recipient) {
         throw new Error('Recipient not found.');

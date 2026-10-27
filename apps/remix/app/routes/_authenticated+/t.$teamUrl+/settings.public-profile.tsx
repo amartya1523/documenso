@@ -13,6 +13,7 @@ import { msg } from '@lingui/core/macro';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { type TemplateDirectLink, TemplateType } from '@prisma/client';
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 import { ManagePublicTemplateDialog } from '~/components/dialogs/public-profile-template-manage-dialog';
 import type { TPublicProfileFormSchema } from '~/components/forms/public-profile-form';
@@ -58,6 +59,7 @@ export default function PublicProfilePage({ loaderData }: Route.ComponentProps) 
   const { toast } = useToast();
 
   const team = useCurrentTeam();
+  const navigate = useNavigate();
 
   const { refreshSession } = useSession();
 
@@ -93,6 +95,10 @@ export default function PublicProfilePage({ loaderData }: Route.ComponentProps) 
 
     if (!isPublicProfileVisible) {
       setIsTooltipOpen(true);
+    }
+
+    if (data.url && data.url !== team.url) {
+      await navigate(`/t/${data.url}/settings/public-profile`);
     }
   };
 

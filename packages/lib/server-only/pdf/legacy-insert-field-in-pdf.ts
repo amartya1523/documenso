@@ -258,7 +258,7 @@ export const legacy_insertFieldInPDF = async (pdf: PDFDocument, field: FieldWith
         value: item.value.length > 0 ? item.value : `empty-value-${item.id}`,
       }));
 
-      const selected = field.customText.split(',');
+      const selected = [field.customText];
 
       for (const [index, item] of (values ?? []).entries()) {
         const offsetY = index * 16;

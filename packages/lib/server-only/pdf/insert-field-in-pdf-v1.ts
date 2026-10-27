@@ -314,7 +314,7 @@ export const insertFieldInPDFV1 = async (pdf: PDFDocument, field: FieldWithSigna
         value: item.value.length > 0 ? item.value : `empty-value-${item.id}`,
       }));
 
-      const selected = field.customText.split(',');
+      const selected = [field.customText];
 
       const topPadding = 12;
       const leftRadioPadding = 8;

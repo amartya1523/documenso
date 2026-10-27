@@ -444,7 +444,11 @@ const SigningPageV1 = ({ data }: { data: Awaited<ReturnType<typeof handleV1Loade
     recipientWithFields,
   } = data;
 
-  if (document.deletedAt || document.status === DocumentStatus.REJECTED) {
+  if (
+    document.deletedAt ||
+    document.status === DocumentStatus.REJECTED ||
+    document.status === DocumentStatus.CANCELLED
+  ) {
     return (
       <div className="-mx-4 flex max-w-[100vw] flex-col items-center overflow-x-hidden px-4 pt-16 md:-mx-8 md:px-8 lg:pt-16 xl:pt-24">
         <SigningCard3D
@@ -544,7 +548,11 @@ const SigningPageV2 = ({ data }: { data: Awaited<ReturnType<typeof handleV2Loade
 
   const { envelope, recipientSignature, recipient } = data.envelopeForSigning;
 
-  if (envelope.deletedAt || envelope.status === DocumentStatus.REJECTED) {
+  if (
+    envelope.deletedAt ||
+    envelope.status === DocumentStatus.REJECTED ||
+    envelope.status === DocumentStatus.CANCELLED
+  ) {
     return (
       <div className="-mx-4 flex max-w-[100vw] flex-col items-center overflow-x-hidden px-4 pt-16 md:-mx-8 md:px-8 lg:pt-16 xl:pt-24">
         <SigningCard3D

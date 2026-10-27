@@ -164,7 +164,7 @@ export const ZCompleteDocumentWithTokenMutationSchema = z.object({
   accessAuthOptions: ZRecipientAccessAuthSchema.optional(),
   nextSigner: z
     .object({
-      email: zEmail().max(254),
+      email: zEmail().trim().toLowerCase().max(254),
       name: z.string().min(1).max(255),
     })
     .optional(),

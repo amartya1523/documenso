@@ -15,6 +15,11 @@ export interface FindFoldersInternalOptions {
 export const findFoldersInternal = async ({ userId, teamId, parentId, type }: FindFoldersInternalOptions) => {
   const team = await getTeamById({ userId, teamId });
 
+  const user = await prisma.user.findFirstOrThrow({
+    where: { id: userId },
+    select: { email: true },
+  });
+
   const visibilityFilters = {
     visibility: {
       in: TEAM_DOCUMENT_VISIBILITY_MAP[team.currentTeamRole],
@@ -61,6 +66,7 @@ export const findFoldersInternal = async ({ userId, teamId, parentId, type }: Fi
                 type: EnvelopeType.DOCUMENT,
                 folderId: folder.id,
                 deletedAt: null,
+                OR: [{ ...visibilityFilters }, { userId }, { recipients: { some: { email: user.email } } }],
               },
             }),
             prisma.envelope.count({
@@ -68,6 +74,7 @@ export const findFoldersInternal = async ({ userId, teamId, parentId, type }: Fi
                 type: EnvelopeType.TEMPLATE,
                 folderId: folder.id,
                 deletedAt: null,
+                OR: [{ ...visibilityFilters }, { userId }],
               },
             }),
             prisma.folder.count({

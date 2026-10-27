@@ -217,16 +217,24 @@ export const signFieldWithToken = async ({
     // !: should be inserted with their default value on document creation instead of
     // !: this weird programattic approach. Until that's fixed though this will verify
     // !: that the programmatic signed value is only that of its default.
+    // The signing UI submits unlabeled options as `empty-value-<id>`.
+    const toSignedOptionValue = (option: { id: number; value: string }) =>
+      option.value.length > 0 ? option.value : `empty-value-${option.id}`;
+
     const isAutomaticSigningValueValid = match(field.fieldMeta)
       .with({ type: 'text' }, (meta) => customText === meta.text)
       .with({ type: 'number' }, (meta) => customText === meta.value)
       .with({ type: 'checkbox' }, (meta) =>
         isDeepEqual(
           fromCheckboxValue(customText ?? ''),
-          meta.values?.filter((v) => v.checked).map((v) => v.value) ?? [],
+          meta.values?.filter((v) => v.checked).map(toSignedOptionValue) ?? [],
         ),
       )
-      .with({ type: 'radio' }, (meta) => customText === meta.values?.find((v) => v.checked)?.value)
+      .with({ type: 'radio' }, (meta) => {
+        const checkedOption = meta.values?.find((v) => v.checked);
+
+        return checkedOption !== undefined && customText === toSignedOptionValue(checkedOption);
+      })
       .with({ type: 'dropdown' }, (meta) => customText === meta.defaultValue)
       .otherwise(() => false);
 
